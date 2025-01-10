@@ -12,14 +12,14 @@ const yoga = createYoga({
         hello: String
       }
       type Mutation {
-        hello: String
+        hello(topicId: ID!): String
       }
       type Subscription {
         # Simple subscription
         hello: String
-        # Subscription with arguments
-        notification(userId: ID!): Json
-        # Subscription with user auth
+        # Subscription with custom topic
+        notification(topicId: ID!): Json
+        # Subscription with user auth topic
         protectedNotification: Json
       }
     `,
@@ -28,19 +28,19 @@ const yoga = createYoga({
         hello: () => "Hello GraphQL!"
       },
       Mutation: {
-        hello: () => {
+        hello: (parent, { topicId }) => {
           pubsub.publish("hello", "Hello GraphQL Subscription!");
-          // Topic e.g. `notification ${args.userId}` or ("notification", args.userId)
+          // Topic e.g. `notification ${topicId}` or ("notification", topicId)
           // Note: subscribe topic should also be defined same way as defined in publish.
-          // pubsub.publish("notification abc", "Hello Custom GraphQL Subscription!"); // <-last arg is payload(string or json object)
+          // pubsub.publish(`notification ${topicId}`, "Hello Custom GraphQL Subscription!"); // <-last arg is payload(string or json object)
           // or below way.
-          pubsub.publish("notification", "abc", {
+          pubsub.publish("notification", topicId, {
             id: "1",
             message: "Hello Custom GraphQL Subscription!",
             createdAt: new Date().toISOString()
           });
+          // get intended user from db/operation and publish to that user
           // Topic e.g. `protectedNotification ${user.id}` or ("protectedNotification", user.id)
-          // get user from request or context
           const user = { id: "cm5q" };
           pubsub.publish(`protectedNotification ${user.id}`, {
             id: "1",
@@ -57,9 +57,9 @@ const yoga = createYoga({
         },
         notification: {
           subscribe: (parent, args) => {
-            // return pubsub.subscribe(`notification ${args.userId}`);
+            // return pubsub.subscribe(`notification ${args.topicId}`);
             // or this way
-            return pubsub.subscribe("notification", args.userId);
+            return pubsub.subscribe("notification", args.topicId);
           },
           resolve: (payload) => payload
         },

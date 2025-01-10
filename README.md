@@ -22,7 +22,7 @@ Open [http://localhost:4000](http://localhost:4000) in your browser and try the 
 
 ```graphql
 mutation helloMutation {
-  hello
+  hello(topicId: "abc")
 }
 
 subscription hello {
@@ -30,7 +30,7 @@ subscription hello {
 }
 
 subscription notification {
-  notification(userId: "abc")
+  notification(topicId: "abc")
 }
 
 subscription protectedNotification {
